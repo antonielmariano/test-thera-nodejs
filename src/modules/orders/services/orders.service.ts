@@ -65,6 +65,9 @@ export class OrdersService {
 
     // Round to 2 decimal places
     totalAmount = Math.round(totalAmount * 100) / 100;
+    if (!product) {
+      throw new NotFoundException(`Product with ID ${item.productId} not found`);
+    }
 
     // Start a transaction
     const order = await this.orderRepository.createOrder(data, totalAmount, userId);
