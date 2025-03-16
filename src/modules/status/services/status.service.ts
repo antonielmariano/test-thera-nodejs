@@ -1,79 +1,69 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateStatusDto, UpdateStatusDto } from '../dto/status.dto';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { CreateStatusDto, UpdateStatusDto } from '../dtos/status.dto';
+import { StatusRepository } from '../repositories/status.repository';
 
 @Injectable()
 export class StatusService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private statusRepository: StatusRepository) {}
 
   async getAllStatuses() {
-    return this.prisma.status.findMany({
-      include: {
-        nextStatus: true
-      }
-    });
+    return this.statusRepository.getAllStatus(true, false);
   }
 
   async getStatusById(id: number) {
-    return this.prisma.status.findUnique({
-      where: { id },
-      include: {
-        nextStatus: true,
-        previousStatus: true
-      }
-    });
+    const status = await this.statusRepository.findStatusById(id, true, true);
+
+    if (!status) {
+      throw new NotFoundException(`Status with ID ${id} not found`);
+    }
+
+    return status;
   }
 
   async createStatus(data: CreateStatusDto) {
-    return this.prisma.status.create({
-      data,
-      include: {
-        nextStatus: true
-      }
-    });
+    try {
+      return await this.statusRepository.createStatus(data);
+    } catch (error) {
+      throw new Error(`Failed to create status: ${error.message}`);
+    }
   }
 
   async updateStatus(id: number, data: UpdateStatusDto) {
-    return this.prisma.status.update({
-      where: { id },
-      data,
-      include: {
-        nextStatus: true
-      }
-    });
+    try {
+      return await this.statusRepository.updateStatus(id, data);
+    } catch (error) {
+      throw new NotFoundException(`Status with ID ${id} not found`);
+    }
   }
 
   async deleteStatus(id: number) {
-    return this.prisma.status.delete({
-      where: { id }
-    });
+    try {
+      return await this.statusRepository.deleteStatus(id);
+    } catch (error) {
+      throw new NotFoundException(`Status with ID ${id} not found`);
+    }
   }
 
   async getStatusFlow() {
-    const statuses = await this.prisma.status.findMany({
-      include: {
-        nextStatus: true,
-        previousStatus: true
-      }
-    });
-    
+    const statuses = await this.statusRepository.getAllStatus(true, true);
+
     const initialStatus = statuses.find(status => status.previousStatus.length === 0);
-    
+
     if (!initialStatus) {
       return [];
     }
-    
+
     const flow = [initialStatus];
     let currentStatus = initialStatus;
-    
+
     while (currentStatus.nextStatusId) {
       const nextStatus = statuses.find(s => s.id === currentStatus.nextStatusId);
       if (!nextStatus) break;
-      
+
       flow.push(nextStatus);
       currentStatus = nextStatus;
     }
-    
+
     return flow;
   }
 }

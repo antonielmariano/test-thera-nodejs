@@ -1,144 +1,124 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../prisma/prisma.service';
-import { CreateOrderDto } from '../dtos/orders.dto';
-import { OrderStatusType } from '@prisma/client';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { CreateOrderDto, OrderResponseDto } from '../dtos/orders.dto';
+import { OrderRepository } from '../repositories/orders.repository';
+import { StatusRepository } from 'src/modules/status/repositories/status.repository';
 
 @Injectable()
 export class OrdersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private orderRepository: OrderRepository,
+    private statusRepository: StatusRepository,
+  ) {}
 
   async getAllOrders() {
-    return this.prisma.order.findMany({
-      include: {
-        status: true,
-        user: true,
-        orderProducts: {
-          include: {
-            product: {
-              include: {
-                category: true
-              }
-            }
-          }
-        }
-      }
-    });
+    const orders = await this.orderRepository.getAllOrders();
+
+    return this.transformOrdersToDto(orders);
   }
-  
+
   async getOrdersByUser(userId: number) {
-    return this.prisma.order.findMany({
-      where: { userId },
-      include: {
-        status: true,
-        user: true,
-        orderProducts: {
-          include: {
-            product: {
-              include: {
-                category: true
-              }
-            }
-          }
-        }
-      }
-    });
+    const orders = await this.orderRepository.getOrdersByUserId(userId);
+
+    return this.transformOrdersToDto(orders);
   }
 
   async getOrderById(id: string) {
     const orderId = BigInt(id);
-    return this.prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        status: true,
-        user: true,
-        orderProducts: {
-          include: {
-            product: {
-              include: {
-                category: true
-              }
-            }
-          }
-        }
-      }
-    });
+    const order = await this.orderRepository.getOrderByOrderId(orderId);
+
+    if (!order) {
+      throw new NotFoundException(`Order with ID ${id} not found`);
+    }
+
+    return this.transformOrderToDto(order);
   }
 
-  async createOrder(data: CreateOrderDto) {
-    const orderProductsData = data.orderProducts.map(item => ({
-      productId: BigInt(item.productId),
-      quantity: item.quantity
-    }));
-    
-    // criar funcao para calcular os preços
-    // deixar status padrão pra pendoing
-    // verificar a logica dos enumerators pra de alguma forma puxar o id
-    // do jeito atual ta puxando so o type, fica meioque inutil
+  async createOrder(data: CreateOrderDto, userId: number) {
+    const productIds = data.orderProducts.map(p => BigInt(p.productId));
 
-    return this.prisma.order.create({
-      data: {
-        totalAmount: data.totalAmount,
-        statusId: OrderStatusType.PENDING,
-        userId: data.userId, // mudar para receber pelo token
-        orderProducts: {
-          create: orderProductsData
-        }
-      },
-      include: {
-        status: true,
-        user: true,
-        orderProducts: {
-          include: {
-            product: true
-          }
-        }
+    const products = await this.orderRepository.verifyIfProductsExists(productIds);
+
+    if (products.length !== productIds.length) {
+      throw new NotFoundException('One or more products not found');
+    }
+
+    const productsMap = new Map(products.map(p => [p.id.toString(), p]));
+
+    let totalAmount = 0;
+
+    for (const item of data.orderProducts) {
+      const product = productsMap.get(item.productId);
+
+      if (!product) {
+        throw new NotFoundException(`Product with ID ${item.productId} not found`);
       }
-    });
+
+      if (product.stockQuantity < item.quantity) {
+        throw new BadRequestException(
+          `Insufficient stock for product "${product.name}". Available: ${product.stockQuantity}, Requested: ${item.quantity}`
+        );
+      }
+
+      // Calculate price for this item
+      totalAmount += product.price * item.quantity;
+    }
+
+    // Round to 2 decimal places
+    totalAmount = Math.round(totalAmount * 100) / 100;
+
+    // Start a transaction
+    const order = await this.orderRepository.createOrder(data, totalAmount, userId);
+
+    return this.transformOrderToDto(order);
   }
 
-  async getNextStatusId(currentStatusId: number) {
-    const currentStatus = await this.prisma.status.findUnique({
-      where: { id: currentStatusId },
-      select: { nextStatusId: true }
-    });
-    
-    return currentStatus?.nextStatusId;
+  async getNextStatusId(currentStatusId: number): Promise<number | null> {
+    const currentStatus = await this.statusRepository.getNextStatusId(currentStatusId, true);
+
+    return currentStatus?.nextStatusId || null;
   }
 
   async updateOrderStatus(id: string, statusId: number) {
     const orderId = BigInt(id);
-    return this.prisma.order.update({
-      where: { id: orderId },
-      data: { statusId },
-      include: {
-        status: true,
-        user: true,
-        orderProducts: {
-          include: {
-            product: true
-          }
-        }
-      }
-    });
+    const updatedOrder = await this.orderRepository.orderStatusUpdate(orderId, statusId);
+
+    return this.transformOrderToDto(updatedOrder);
   }
 
   async advanceOrderStatus(id: string) {
     const orderId = BigInt(id);
-    const order = await this.prisma.order.findUnique({
-      where: { id: orderId },
-      select: { statusId: true }
-    });
-    
+    const order = await this.orderRepository.findByOrderId(orderId, true);
+
     if (!order) {
-      throw new Error('Order not found');
+      throw new NotFoundException('Order not found');
     }
-    
+
     const nextStatusId = await this.getNextStatusId(order.statusId);
-    
+
     if (!nextStatusId) {
-      throw new Error('Order is already in its final status');
+      throw new BadRequestException('Order is already in its final status');
     }
-    
+
     return this.updateOrderStatus(id, nextStatusId);
+  }
+
+  private transformOrderToDto(order: any): OrderResponseDto {
+    return {
+      ...order,
+      id: order.id.toString(),
+      orderProducts: order.orderProducts.map(op => ({
+        ...op,
+        id: op.id.toString(),
+        productId: op.productId.toString(),
+        product: {
+          ...op.product,
+          id: op.product.id.toString()
+        }
+      }))
+    };
+  }
+
+  private transformOrdersToDto(orders: any[]): OrderResponseDto[] {
+    return orders.map((order) => this.transformOrderToDto(order));
   }
 }

@@ -1,9 +1,17 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
   private readonly logger = new Logger(PrismaService.name);
 
   constructor(private configService: ConfigService) {
@@ -14,27 +22,27 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         },
       },
     });
-    
+
     this.$use(async (params, next) => {
       const result = await next(params);
-      
+
       const convertData = (obj) => {
         if (obj === null || obj === undefined) {
           return obj;
         }
-        
+
         if (typeof obj === 'bigint') {
           return obj.toString();
         }
-        
+
         if (obj instanceof Date) {
           return obj.toISOString();
         }
-        
+
         if (Array.isArray(obj)) {
           return obj.map(convertData);
         }
-        
+
         if (typeof obj === 'object') {
           const result = {};
           for (const key in obj) {
@@ -44,10 +52,10 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
           }
           return result;
         }
-        
+
         return obj;
       };
-      
+
       return convertData(result);
     });
   }

@@ -8,52 +8,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
-// Enums
-enum CategoryType {
-  ELECTRONICS
-  CLOTHING
-  BOOKS
-  HOME_APPLIANCES
-  FURNITURE
-  TOYS
-  SPORTS
-  BEAUTY
-  FOOD
-  OTHER
-}
-
-enum OrderStatusType {
-  PENDING
-  PROCESSING
-  SHIPPED
-  DELIVERED
-  COMPLETED
-  CANCELED
-  REFUNDED
-}
-
-
 // Models
 model User {
   id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
   password  String
+  isAdmin   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   orders    Order[]
+  @@map("users")
 }
 
 model Category {
   id        Int           @id @default(autoincrement())
   name      String        @unique
-  type      CategoryType  @default(OTHER) @unique
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   
   products  Product[]
+  @@map("categories")
 }
 
 model Product {
@@ -68,6 +44,7 @@ model Product {
 
   category        Category    @relation(fields: [categoryId], references: [id])
   orderProducts   OrderProduct[]
+  @@map("products")
 }
 
 model Order {
@@ -81,6 +58,7 @@ model Order {
   user          User           @relation(fields: [userId], references: [id])
   status        Status         @relation(fields: [statusId], references: [id])
   orderProducts OrderProduct[]
+  @@map("orders")
 }
 
 model OrderProduct {
@@ -91,12 +69,12 @@ model OrderProduct {
 
   order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  @@map("order_products")
 }
 
 model Status {
   id              Int               @id @default(autoincrement())
   name            String            @unique
-  type            OrderStatusType   @default(PENDING) @unique
   description     String?
   isFinal         Boolean           @default(false)
   nextStatusId    Int?
@@ -104,4 +82,5 @@ model Status {
   nextStatus      Status?           @relation("StatusFlow", fields: [nextStatusId], references: [id])
   previousStatus  Status[]          @relation("StatusFlow")
   orders          Order[]
+  @@map("status")
 }
