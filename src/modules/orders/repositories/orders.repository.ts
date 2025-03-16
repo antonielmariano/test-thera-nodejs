@@ -45,7 +45,7 @@ export class OrderRepository {
   }
 
   async getOrderByOrderId(orderId: bigint) {
-    return await this.prisma.order.findMany({
+    return await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
         status: true,
