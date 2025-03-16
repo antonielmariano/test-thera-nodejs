@@ -1,5 +1,9 @@
 services:
   api:
+    container_name: thera-api
+    volumes:
+        - .:/app
+        - /app/node_modules
     build:
       context: .
     ports:
@@ -13,7 +17,7 @@ services:
       
   postgres:
     image: postgres:latest
-    container_name: db
+    container_name: thera-database
     restart: always
     environment:
       POSTGRES_USER: ${DB_USER}

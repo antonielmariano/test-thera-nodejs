@@ -73,7 +73,7 @@ async function seedUsers(): Promise<User[]> {
   ];
 
   const users: User[] = [];
-  
+
   for (const userData of usersData) {
     const hashedPassword = await hashPassword(userData.password);
 

@@ -42,7 +42,6 @@ export class StatusRepository {
   async createStatus(data: CreateStatusDto) {
     return await this.prisma.status.create({
       data: {
-        id: data.id,
         name: data.name,
         description: data.description,
         isFinal: data.isFinal,
@@ -57,10 +56,10 @@ export class StatusRepository {
     return await this.prisma.status.update({
       where: { id },
       data: {
-        ...(data.name && { name: data.name }),
-        ...(data.description !== undefined && { description: data.description }),
-        ...(data.isFinal !== undefined && { isFinal: data.isFinal }),
-        ...(data.nextStatusId !== undefined && { nextStatusId: data.nextStatusId })
+        name: data.name ?? undefined,
+        description: data.description ?? undefined,
+        isFinal: data.isFinal ?? undefined,
+        nextStatusId: data.nextStatusId ?? undefined,
       },
       include: {
         nextStatus: true,

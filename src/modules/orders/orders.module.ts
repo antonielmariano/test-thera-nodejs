@@ -5,6 +5,7 @@ import { PrismaModule } from '../../../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt';
 import { OrderRepository } from './repositories/orders.repository';
 import { StatusRepository } from '../status/repositories/status.repository';
+import { ProductRepository } from '../products/repositories/products.repository';
 
 @Module({
   imports: [
@@ -15,6 +16,11 @@ import { StatusRepository } from '../status/repositories/status.repository';
     }),
   ],
   controllers: [OrdersController],
-  providers: [OrdersService, OrderRepository, StatusRepository],
+  providers: [
+    OrdersService,
+    OrderRepository,
+    StatusRepository,
+    ProductRepository,
+  ],
 })
 export class OrdersModule {}

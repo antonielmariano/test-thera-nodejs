@@ -27,7 +27,6 @@ export class CategoryRepository {
   async createCategory(data: CreateCategoryDto) {
     return await this.prisma.category.create({
       data: {
-        id: data.id,
         name: data.name,
       },
       include: {

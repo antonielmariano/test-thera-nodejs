@@ -2,10 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateStatusDto {
-  @ApiProperty({ example: '1', description: 'Status id' })
-  @IsNumber()
-  id: number;
-
   @ApiProperty({ example: 'Done', description: 'Status name' })
   @IsString()
   name: string;

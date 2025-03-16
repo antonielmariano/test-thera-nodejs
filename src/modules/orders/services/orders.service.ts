@@ -2,12 +2,14 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { CreateOrderDto, OrderResponseDto } from '../dtos/orders.dto';
 import { OrderRepository } from '../repositories/orders.repository';
 import { StatusRepository } from 'src/modules/status/repositories/status.repository';
+import { ProductRepository } from 'src/modules/products/repositories/products.repository';
 
 @Injectable()
 export class OrdersService {
   constructor(
     private orderRepository: OrderRepository,
     private statusRepository: StatusRepository,
+    private productRepotisoty: ProductRepository,
   ) {}
 
   async getAllOrders() {
@@ -36,7 +38,7 @@ export class OrdersService {
   async createOrder(data: CreateOrderDto, userId: number) {
     const productIds = data.orderProducts.map(p => BigInt(p.productId));
 
-    const products = await this.orderRepository.verifyIfProductsExists(productIds);
+    const products = await this.productRepotisoty.verifyIfProductsExists(productIds);
 
     if (products.length !== productIds.length) {
       throw new NotFoundException('One or more products not found');
@@ -65,11 +67,13 @@ export class OrdersService {
 
     // Round to 2 decimal places
     totalAmount = Math.round(totalAmount * 100) / 100;
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${item.productId} not found`);
+
+    const statuses = await this.statusRepository.getAllStatus(false, false);
+
+    if (statuses.length == 0) {
+      throw new NotFoundException('No statuses found. Please create at least one status');
     }
 
-    // Start a transaction
     const order = await this.orderRepository.createOrder(data, totalAmount, userId);
 
     return this.transformOrderToDto(order);

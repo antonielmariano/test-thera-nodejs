@@ -11,7 +11,13 @@ export class OrderRepository {
     return await this.prisma.order.findMany({
       include: {
         status: true,
-        user: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
         orderProducts: {
           include: {
             product: {
@@ -30,7 +36,13 @@ export class OrderRepository {
       where: { userId },
       include: {
         status: true,
-        user: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
         orderProducts: {
           include: {
             product: {
@@ -49,7 +61,13 @@ export class OrderRepository {
       where: { id: orderId },
       include: {
         status: true,
-        user: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
         orderProducts: {
           include: {
             product: {
@@ -63,13 +81,6 @@ export class OrderRepository {
     });
   }
 
-  async verifyIfProductsExists(productIds: bigint[]) {
-    return await this.prisma.product.findMany({
-      where: {
-        id: { in: productIds },
-      },
-    });
-  }
 
   async createOrder(data: CreateOrderDto, totalAmount: number, userId: number) {
     return this.prisma.$transaction(async (prisma) => {
@@ -88,7 +99,13 @@ export class OrderRepository {
         },
         include: {
           status: true,
-          user: true,
+          user: {
+            select: {
+              id: true,
+              email: true,
+              name: true,
+            },
+          },
           orderProducts: {
             include: {
               product: true,
@@ -117,7 +134,13 @@ export class OrderRepository {
       data: { statusId },
       include: {
         status: true,
-        user: true,
+        user: {
+          select: {
+            id: true,
+            email: true,
+            name: true,
+          },
+        },
         orderProducts: {
           include: {
             product: true,

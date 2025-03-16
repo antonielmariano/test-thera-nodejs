@@ -76,4 +76,12 @@ export class ProductRepository {
       },
     });
   }
+
+  async verifyIfProductsExists(productIds: bigint[]) {
+    return await this.prisma.product.findMany({
+      where: {
+        id: { in: productIds },
+      },
+    });
+  }
 }
