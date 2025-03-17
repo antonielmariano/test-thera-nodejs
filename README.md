@@ -67,8 +67,7 @@ yarn install
 cp .env.example .env
 ```
 
-4. Edite o arquivo `.env` com suas configurações:
-
+4. Edite o arquivo `.env` com suas configurações, recomendo usar uma porta diferente de 5432 na DB_PORT para evitar possíveis conflitos
 ```
 DB_USER=postgres
 DB_PASSWORD=postgres
@@ -154,7 +153,7 @@ http://localhost:3000/api/docs
 
 ## Coleção Postman
 
-Para facilitar o teste da API, disponibilizamos uma coleção do Postman com todas as rotas configuradas:
+Para facilitar o teste da API, disponibilizo uma coleção do Postman com todas as rotas configuradas:
 
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://elements.getpostman.com/redirect?entityId=22433778-f7f29ac2-466a-45aa-aad0-d5d4593e3fde&entityType=collection)
 
@@ -170,9 +169,6 @@ Para usar a coleção:
 1. Clique no botão "Run in Postman" acima
 2. Importe a coleção para o seu Postman
 3. Configure o ambiente com a URL base da sua API (por padrão: `http://localhost:3000`)
-4. Use a rota de login para obter um token JWT
-5. O token será automaticamente configurado para as demais requisições
-
 ---
 
 <p align="center">
