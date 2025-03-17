@@ -156,20 +156,7 @@ http://localhost:3000/api/docs
 
 Para facilitar o teste da API, disponibilizamos uma coleção do Postman com todas as rotas configuradas:
 
-<div class="postman-run-button"
-data-postman-action="collection/fork"
-data-postman-visibility="public"
-data-postman-var-1="22433778-f7f29ac2-466a-45aa-aad0-d5d4593e3fde"
-data-postman-collection-url="entityId=22433778-f7f29ac2-466a-45aa-aad0-d5d4593e3fde&entityType=collection&workspaceId=9780995d-0ac0-4d84-831a-bb9f113d571e"></div>
-<script type="text/javascript">
-  (function (p,o,s,t,m,a,n) {
-    !p[s] && (p[s] = function () { (p[t] || (p[t] = [])).push(arguments); });
-    !o.getElementById(s+t) && o.getElementsByTagName("head")[0].appendChild((
-      (n = o.createElement("script")),
-      (n.id = s+t), (n.async = 1), (n.src = m), n
-    ));
-  }(window, document, "_pm", "PostmanRunObject", "https://run.pstmn.io/button.js"));
-</script>
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://elements.getpostman.com/redirect?entityId=22433778-f7f29ac2-466a-45aa-aad0-d5d4593e3fde&entityType=collection)
 
 A coleção inclui:
 - Autenticação (login e registro)
