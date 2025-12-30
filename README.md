@@ -155,7 +155,7 @@ http://localhost:3000/api/docs
 
 Para facilitar o teste da API, disponibilizo uma coleção do Postman com todas as rotas configuradas:
 
-[![Run in Postman](https://run.pstmn.io/button.svg)](https://elements.getpostman.com/redirect?entityId=22433778-f7f29ac2-466a-45aa-aad0-d5d4593e3fde&entityType=collection)
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://marianoantoniel.postman.co/workspace/Teste-T%25C3%25A9cnico~461fa319-cbe5-4bfa-ad2d-cd411bf4deff/collection/22433778-ed1298b8-432d-49cd-a936-268e9efc530b?action=share&source=copy-link&creator=22433778)
 
 A coleção inclui:
 - Autenticação (login e registro)
