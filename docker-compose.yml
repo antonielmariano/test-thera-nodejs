@@ -2,21 +2,21 @@ services:
   api:
     container_name: thera-api
     volumes:
-        - .:/app
-        - /app/node_modules
+      - .:/app
+      - /app/node_modules
     build:
       context: .
     ports:
-      - "${API_PORT}:${API_PORT}"
+      - '${API_PORT}:${API_PORT}'
     env_file:
       - .env
     depends_on:
       - postgres
     environment:
       DATABASE_URL: ${DATABASE_URL}
-      
+
   postgres:
-    image: postgres:latest
+    image: postgres:17
     container_name: thera-database
     restart: always
     environment:
@@ -25,7 +25,7 @@ services:
       POSTGRES_DB: ${DB_NAME}
       PGPORT: ${DB_PORT}
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - '${DB_PORT}:${DB_PORT}'
     volumes:
       - pgdata:/var/lib/postgresql/data
 
